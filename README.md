@@ -9,7 +9,7 @@ This tools offer a different features for post-explotation once you change the D
 ## Installation  
   
 dnspython (www.dnspython.com) is needed. 
-Tested with Python 2.6 and Python 2.7.
+Tested with Python3.
 
     $ sudo chmod +x install.sh
     $ sudo ./install.sh

@@ -1,18 +1,19 @@
-#!/usr/bin/python2.6
+#!/usr/bin/python3
 '''
 dns2proxy for offensive cybersecurity v1.0
 
+Port port python3 version
 
 python dns2proxy.py -h for Usage.
 
 Example:
-python2.6 dns2proxy.py -i eth0 -u 192.168.1.101 -d 192.168.1.200
+python3 dns2proxy.py -i eth0 -u 192.168.1.101 -d 192.168.1.200
 
 Example for no forwarding (only configured domain based queries and spoofed hosts):
-  python2.6 dns2proxy.py -i eth0 -noforward
+  python3 dns2proxy.py -i eth0 -noforward
 
 Example for no forwarding but add IPs
-  python dns2proxy.py -i eth0 -I 192.168.1.101,90.1.1.1,155.54.1.1 -noforward
+  python3 dns2proxy.py -i eth0 -I 192.168.1.101,90.1.1.1,155.54.1.1 -noforward
 
 Author: Leonardo Nve ( leonardo.nve@gmail.com)
 '''
@@ -180,7 +181,7 @@ def process_files():
 def DEBUGLOG(str):
     global debug
     if debug:
-        print str
+        print(str)
     return
 
 
@@ -309,7 +310,7 @@ def respuestas(name, type):
     DEBUGLOG('Query = ' + name + ' ' + type)
     try:
         answers = Resolver.query(name, type)
-    except Exception, e:
+    except Exception as e:
         DEBUGLOG('Exception...')
         return 0
     return answers
@@ -321,7 +322,8 @@ def requestHandler(address, message):
     qtime = time()
     seconds_betwen_ids  = 30
     try:
-        message_id = ord(message[0]) * 256 + ord(message[1])
+        print(message[0], message[1])
+        message_id = message[0] * 256 + message[1]
         DEBUGLOG('msg id = ' + str(message_id))
         if message_id in serving_ids:
             if (qtime - serving_ids[message_id]) < seconds_betwen_ids:
@@ -363,15 +365,15 @@ def requestHandler(address, message):
                     # not implemented
                     resp = make_response(qry=msg, RCODE=4)  # RCODE =  4    Not Implemented
 
-            except Exception, e:
+            except Exception as e:
                 DEBUGLOG('got ' + repr(e))
                 resp = make_response(qry=msg, RCODE=2)  # RCODE =  2    Server Error
                 DEBUGLOG('resp = ' + repr(resp.to_wire()))
-        except Exception, e:
+        except Exception as e:
             DEBUGLOG('got ' + repr(e))
             resp = make_response(id=message_id, RCODE=1)  # RCODE =  1    Format Error
             DEBUGLOG('resp = ' + repr(resp.to_wire()))
-    except Exception, e:
+    except Exception as e:
         # message was crap, not even the ID
         DEBUGLOG('got ' + repr(e))
 
@@ -425,9 +427,9 @@ def std_MX_qry(msg):
 
 def std_TXT_qry(msg):
     qs = msg.question
-    print str(len(qs)) + ' questions.'
+    print(str(len(qs)) + ' questions.')
     iparpa = qs[0].to_text().split(' ', 1)[0]
-    print 'Host: ' + iparpa
+    print('Host: ' + iparpa)
     resp = make_response(qry=msg)
 
     host = iparpa[:-1]
@@ -451,12 +453,12 @@ def std_TXT_qry(msg):
 
     hosts = respuestas(iparpa[:-1], 'TXT')
     if isinstance(hosts, numbers.Integral):
-        print 'No host....'
+        print('No host....')
         resp = make_response(qry=msg, RCODE=3)  # RCODE =  3    NXDOMAIN
         return resp
 
     for host in hosts:
-        print 'Adding ' + host.to_text()
+        print('Adding ' + host.to_text())
         rrset = dns.rrset.from_text(iparpa, 1000, dns.rdataclass.IN, dns.rdatatype.TXT, host.to_text())
         resp.answer.append(rrset)
 
@@ -464,9 +466,9 @@ def std_TXT_qry(msg):
 
 def std_SPF_qry(msg):
     qs = msg.question
-    print str(len(qs)) + ' questions.'
+    print(str(len(qs)) + ' questions.')
     iparpa = qs[0].to_text().split(' ', 1)[0]
-    print 'Host: ' + iparpa
+    print('Host: ' + iparpa)
     resp = make_response(qry=msg)
 
     # host = iparpa[:-1]
@@ -489,12 +491,12 @@ def std_SPF_qry(msg):
 
     hosts = respuestas(iparpa[:-1], 'SPF')
     if isinstance(hosts, numbers.Integral):
-        print 'No host....'
+        print('No host....')
         resp = make_response(qry=msg, RCODE=3)  # RCODE =  3    NXDOMAIN
         return resp
 
     for host in hosts:
-        print 'Adding ' + host.to_text()
+        print('Adding ' + host.to_text())
         rrset = dns.rrset.from_text(iparpa, 1000, dns.rdataclass.IN, dns.rdatatype.SPF, host.to_text())
         resp.answer.append(rrset)
 
@@ -683,13 +685,13 @@ def std_ASPOOF_qry(msg):
 
 def make_response(qry=None, id=None, RCODE=0):
     if qry is None and id is None:
-        raise Exception, 'bad use of make_response'
+        raise Exception('bad use of make_response')
     if qry is None:
         resp = dns.message.Message(id)
         # QR = 1
         resp.flags |= dns.flags.QR
         if RCODE != 1:
-            raise Exception, 'bad use of make_response'
+            raise Exception('bad use of make_response')
     else:
         resp = dns.message.make_response(qry)
     resp.flags |= dns.flags.AA
@@ -725,7 +727,7 @@ while True:
     try:
         message, address = s.recvfrom(1024)
         noserv = True
-    except socket.error as (code, msg):
+    except socket.error as code:
         if code != errno.EINTR:
             raise
 
